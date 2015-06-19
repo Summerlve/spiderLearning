@@ -20,13 +20,13 @@ async.waterfall([
 	function (isExists, cb) {
 		if (!isExists) return cb(null);
 		exec("rm " + filepath, function(err) {
-			if (err) console.error(err);
+			if (err) return cb(err);
 			else return cb(null);
 		});
 	},
 	function (cb) {
 		exec("touch " + filepath, function (err) {
-			if (err) console.error(err);
+			if (err) return cb(err);
 			else return cb(null);
 		});
 	},
@@ -39,7 +39,9 @@ async.waterfall([
 			gzip: false,
 			encoding: null
 		}, function (err, res, body) {
+			if (err || res.statusCode !== 200) console.error(err);
 			body = iconv.decode(body, "utf-8");
+			console.log(body);
 			var $ = cheerio.load(body);
 			var v = $("span.v");	
 			
@@ -68,7 +70,7 @@ async.waterfall([
 			async.waterfall([
 				function (cb__) {
 					fs.appendFile(filepath, chapter.name + "\r\n", function (err) {
-						if (err) console.error(err);
+						if (err) return cb__(err);
 						return cb__(null);
 					});
 				}, 
@@ -80,26 +82,27 @@ async.waterfall([
 							gzip: false,
 							encoding: null
 						}, function (err, res, body) {
+							if (err || res.statusCode !== 200) console.error(err);
 							body = iconv.decode(body, "utf-8");
 							var $ = cheerio.load(body);
 							section.content = $("#BookText").text();
 							fs.appendFile(filepath, section.toString(), function (err) {
-								if (err) console.error(err);
-								return cb___();
+								if (err) return cb___(err);
+								else return cb___();
 							});
 						});
 					}, function (err) {
-						if (err) console.error(err);
-						return cb__(null);
+						if (err) return cb__(err);
+						else return cb__(null);
 					});
 				}
 			], function (err) {
-				if (err) console.error(err);
-				return cb_();
+				if (err) return cb_(err);
+				else return cb_();
 			});
 		}, function (err) {
-			if (err) console.error(err);
-			return cb(null);
+			if (err) return cb(err);
+			else return cb(null);
 		});
 	}
 ], function (err) {
