@@ -90,7 +90,7 @@ async.waterfall([
 						});
 					}, function (err) {
 						if (err) console.error(err);
-						return cb__();
+						return cb__(null);
 					});
 				}
 			], function (err) {
